@@ -28,7 +28,7 @@ const checkEmailAuthority = async (email) => {
 export const checkUpdate = functions.https.onRequest(async (req, res) => {
     const lastTimestamp = req.query.timestamp;
     const tags = await getUpdate("tags", lastTimestamp);
-    const duas = await getUpdate("data", lastTimestamp);
+    const duas = await getUpdate("duas", lastTimestamp);
     const themes = await getUpdate("themes", lastTimestamp);
     res.send({ duas, tags, themes });
 });
@@ -38,14 +38,13 @@ const getUpdate = async (name, lastTimestamp) => {
     return snapshot.docs
     .filter(doc => doc.data().timestamp > lastTimestamp)
     .map(doc => {
-        const { timestamp, ...rest } = doc.data();
-        return ({ id: doc.id, ...rest });
+        return ({ id: doc.id, ...doc.data() });
     });
 }
 
 export const getTags = functions.https.onCall((data, context) => open('tags'));
 
-export const getDuas = functions.https.onCall((data, context) => open('data'));
+export const getDuas = functions.https.onCall((data, context) => open('duas'));
 
 export const getThemes = functions.https.onCall((data, context) => open('themes'));
 
@@ -59,7 +58,7 @@ const open = async (name) => {
 
 export const setTag = functions.https.onCall((data, context) => save('tags', data));
 
-export const setDua = functions.https.onCall((data, context) => save('data', data));
+export const setDua = functions.https.onCall((data, context) => save('duas', data));
 
 export const setTheme = functions.https.onCall((data, context) => save('themes', data));
 
