@@ -66,10 +66,10 @@ const save = async (name, data) => {
     const ref = db.collection(name);
 
     const timestamp = Date.now();
-    let { id, ...newData } = data;
+    const { id: numId, ...newData } = data;
 
-    if (id) {
-        id = String(id);
+    if (numId) {
+        const id = String(numId);
         const doc = await ref.doc(id).get();
         const prevData = doc.data();
         if (isSame(newData, prevData)) {
@@ -79,10 +79,37 @@ const save = async (name, data) => {
             return { id, ...newData }
         }
     } else {
-        id = String(timestamp);
+        const id = String(timestamp);
         await ref.doc(id).set({ ...newData, timestamp });
         return { id, ...newData };
     }
+}
+
+export const setAllTag = functions.https.onCall((data, context) => saveAll('tags', data));
+
+export const setAllDua = functions.https.onCall((data, context) => saveAll('duas', data));
+
+export const setAllTheme = functions.https.onCall((data, context) => saveAll('themes', data));
+
+const saveAll = async (name, list) => {
+    const ref = db.collection(name);
+
+    const timestamp = Date.now();
+    return list.map(async (data) => {
+        const { id: numId, ...newData } = data;
+
+        if (numId) {
+            const id = String(numId);
+            const doc = await ref.doc(id).get();
+            const prevData = doc.data();
+            if (isSame(newData, prevData)) {
+                return { id, ...prevData }
+            } else {
+                await ref.doc(id).set({ ...newData, timestamp });
+                return { id, ...newData }
+            }
+        }
+    })
 }
 
 const isSame = (data1, data2) => {
